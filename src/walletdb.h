@@ -104,6 +104,13 @@ public:
 
     bool WriteMinVersion(int nVersion);
 
+    //#########AGREGADO
+
+    bool WriteWatchOnly(const CScript &script, const CKeyMetadata &keymeta);
+    bool EraseWatchOnly(const CScript &script);
+
+    //####FINAGREGADO
+
     bool ReadAccount(const std::string& strAccount, CAccount& account);
     bool WriteAccount(const std::string& strAccount, const CAccount& account);
 private:

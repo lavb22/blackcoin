@@ -222,6 +222,27 @@ void CWalletDB::ListAccountCreditDebit(const string& strAccount, list<CAccountin
     pcursor->close();
 }
 
+//#########AGREGADO
+bool CWalletDB::WriteWatchOnly(const CScript &dest, const CKeyMetadata& keyMeta)
+{nWalletDBUpdated++;
+    if (!Write(std::make_pair(std::string("watchmeta"), dest), keyMeta,true)) {
+    	LogPrintf("Error añadiendo a base de datos");
+        return false;
+    }
+    bool fl1=Write(std::make_pair(std::string("watchs"), dest), '1',true);
+    nWalletDBUpdated++;
+
+    return fl1;
+}
+
+bool CWalletDB::EraseWatchOnly(const CScript &dest)
+{	nWalletDBUpdated++;
+    if (!Erase(std::make_pair(std::string("watchmeta"), dest))) {
+        return false;
+    }
+    return Erase(std::make_pair(std::string("watchs"), dest));
+}
+//#########FIN DE AGREGADO
 
 DBErrors
 CWalletDB::ReorderTransactions(CWallet* pwallet)
@@ -305,13 +326,14 @@ public:
     unsigned int nKeys;
     unsigned int nCKeys;
     unsigned int nKeyMeta;
+    unsigned int nWatchKeys;
     bool fIsEncrypted;
     bool fAnyUnordered;
     int nFileVersion;
     vector<uint256> vWalletUpgrade;
 
     CWalletScanState() {
-        nKeys = nCKeys = nKeyMeta = 0;
+        nKeys = nCKeys = nKeyMeta = nWatchKeys =0;
         fIsEncrypted = false;
         fAnyUnordered = false;
         nFileVersion = 0;
@@ -395,6 +417,20 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
                     wss.fAnyUnordered = true;
             }
         }
+        else if (strType == "watchs")
+               {
+                   wss.nWatchKeys++;
+                   CScript script;
+                   ssKey >> script;
+                   char fYes;
+                   ssValue >> fYes;
+                   if (fYes == '1'){
+                       pwallet->LoadWatchOnly(script);
+                   	//LogPrintf("########WatchOnlyAddress Cargada a Memoria\n");
+                       }
+               }
+
+
         else if (strType == "key" || strType == "wkey")
         {
             CPubKey vchPubKey;
@@ -488,6 +524,7 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
             }
             wss.fIsEncrypted = true;
         }
+
         else if (strType == "keymeta")
         {
             CPubKey vchPubKey;
@@ -640,7 +677,7 @@ DBErrors CWalletDB::LoadWallet(CWallet* pwallet)
            wss.nKeys, wss.nCKeys, wss.nKeyMeta, wss.nKeys + wss.nCKeys);
 
     // nTimeFirstKey is only reliable if all keys have metadata
-    if ((wss.nKeys + wss.nCKeys) != wss.nKeyMeta)
+    if ((wss.nKeys + wss.nCKeys + wss.nWatchKeys) != wss.nKeyMeta)
         pwallet->nTimeFirstKey = 1; // 0 would be considered 'no value'
 
 

@@ -77,7 +77,7 @@ extern void InitRPCMining();
 extern void ShutdownRPCMining();
 
 extern int64_t nWalletUnlockTime;
-extern int64_t AmountFromValue(const json_spirit::Value& value, bool allowZero = false);
+extern int64_t AmountFromValue(const json_spirit::Value& value);
 extern json_spirit::Value ValueFromAmount(int64_t amount);
 extern double GetDifficulty(const CBlockIndex* blockindex = NULL);
 
@@ -107,7 +107,7 @@ extern json_spirit::Value dumpwallet(const json_spirit::Array& params, bool fHel
 extern json_spirit::Value importwallet(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value dumpprivkey(const json_spirit::Array& params, bool fHelp); // in rpcdump.cpp
 extern json_spirit::Value importprivkey(const json_spirit::Array& params, bool fHelp);
-
+extern json_spirit::Value importaddress(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value sendalert(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value getsubsidy(const json_spirit::Array& params, bool fHelp);
